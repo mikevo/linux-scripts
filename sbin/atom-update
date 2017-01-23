@@ -1,0 +1,31 @@
+#!/bin/sh -e
+
+if [ "`/usr/bin/id -u`" != "0" ] ; then
+  echo "Error: This command has to be run under the root user.";
+  exit 1;
+fi
+
+url=$(curl -Is https://github.com/atom/atom/releases/latest | grep "Location")
+latest=$(echo $url | awk '{ print $2 }')
+current=v$(atom -v | grep Atom | awk '{ print $3}')
+
+# check if $latest contains $current
+# removes *$current* from $latest if contained
+# if the result is not empty we know that its a differnt version
+if [ -n "${latest##*$current*}" ] ; then
+  wget https://atom.io/download/rpm -O /tmp/atom.x86_64.rpm
+  cat /etc/redhat-release | grep 'Fedora' > /dev/null
+  if [ $? -eq 0 ] ; then
+    dnf install /tmp/atom.x86_64.rpm -y
+  else
+    cat /etc/redhat-release | grep 'CentOS' > /dev/null
+    if [ $? -eq 0 ] ; then
+      yum install /tmp/atom.x86_64.rpm -y
+    else
+      echo "Error: Cannot find compatible package manager."
+      exit 2;
+    fi
+  fi
+else
+  echo "Latest version already installed."
+fi
