@@ -1,0 +1,10 @@
+#!/bin/sh
+
+git checkout master
+
+if [ 0 -eq $? ] ; then
+	git merge develop
+	for remote in `git remote` ; do git push $remote ; done
+fi
+
+git checkout develop
